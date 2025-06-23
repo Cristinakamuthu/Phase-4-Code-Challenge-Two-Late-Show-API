@@ -33,7 +33,7 @@ class Guest(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     occupation = db.Column (db.String)
-    episodes = relationship('Episode',back_populates='guest' cascade="all, delete ")
+    episodes = relationship('Episode',back_populates='guest' ,cascade="all, delete ")
 
 
 class Episode(db.Model, SerializerMixin):
