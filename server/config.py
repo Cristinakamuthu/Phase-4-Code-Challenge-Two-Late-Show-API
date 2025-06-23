@@ -1,4 +1,3 @@
-# SQLALCHEMY_DATABASE_URI = "postgresql://<user>:<password>@localhost:5432/late_show_db"
 from flask import Flask
 from flask_bcrypt import Bcrypt
 from flask_migrate import Migrate
