@@ -6,47 +6,49 @@ from datetime import datetime
 from sqlalchemy import ForeignKey
 
 
-
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
     serialize_rules = ('-_password_hash',)
 
     id = db.Column(db.Integer, primary_key=True)
-    username =db.Column(db.String, unique=True ,nullable=False)
-    password_hash = db.Column(db.String, nullable=False)
+    username = db.Column(db.String, unique=True, nullable=False)
+    _password_hash = db.Column(db.String, nullable=False)
 
-@hybrid_property
-def password_hash(self):
-    return self._password_hash
+    @hybrid_property
+    def password_hash(self):
+        return self._password_hash
 
-@password_hash.setter
-def password_hash(self, password):
-    self._password_hash = bcrypt.generate_password_hash(password.encode()).decode()
+    @password_hash.setter
+    def password_hash(self, password):
+        self._password_hash = bcrypt.generate_password_hash(password.encode()).decode()
 
-def authenticate(self, password):
-    return self._password_hash and bcrypt.check_password_hash(self._password_hash, password.encode())
+    def authenticate(self, password):
+        return bcrypt.check_password_hash(self._password_hash, password.encode())
 
 
 class Guest(db.Model, SerializerMixin):
     __tablename__ = 'guests'
+    serialize_rules = ('-appearances.guest',)
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
-    occupation = db.Column (db.String)
-    episodes = relationship('Episode',back_populates='guest' ,cascade="all, delete ")
+    occupation = db.Column(db.String)
+    appearances = relationship('Appearance', back_populates='guest', cascade="all, delete")
 
 
 class Episode(db.Model, SerializerMixin):
     __tablename__ = 'episodes'
+    serialize_rules = ('-appearances.episode',)
 
     id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.Integer, db.DateTime, default=datetime.now)
+    date = db.Column(db.DateTime, default=datetime.now)
     number = db.Column(db.Integer)
-    guests = relationship('Guest', back_populates='episode')
+    appearances = relationship('Appearance', back_populates='episode', cascade="all, delete")
 
 
 class Appearance(db.Model, SerializerMixin):
     __tablename__ = 'appearances'
+    serialize_rules = ('guest', 'episode')
 
     id = db.Column(db.Integer, primary_key=True)
     rating = db.Column(db.Integer)
@@ -56,16 +58,8 @@ class Appearance(db.Model, SerializerMixin):
     guest = relationship("Guest", back_populates="appearances")
     episode = relationship("Episode", back_populates="appearances")
 
-
-@validates("rating")
-def validating_instructions(self, key, rating):
-    if rating is int > 5 :
-         raise ValueError("rating must be between 1-5 ")
-    return rating 
-
-
-
-
-
-
-    
+    @validates("rating")
+    def validate_rating(self, key, rating):
+        if not 1 <= rating <= 5:
+            raise ValueError("Rating must be between 1 and 5")
+        return rating
