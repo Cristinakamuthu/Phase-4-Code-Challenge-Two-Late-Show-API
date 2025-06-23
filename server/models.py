@@ -13,7 +13,7 @@ class User(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     username =db.Column(db.String, unique=True ,nullable=False)
-    __password_hash = db.Column(db.String, nullable=False)
+    password_hash = db.Column(db.String, nullable=False)
 
 @hybrid_property
 def password_hash(self):
@@ -33,7 +33,7 @@ class Guest(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
     occupation = db.Column (db.String)
-    episodes = relationship('Episode',back_populates='guest')
+    episodes = relationship('Episode',back_populates='guest' cascade="all, delete ")
 
 
 class Episode(db.Model, SerializerMixin):
@@ -52,6 +52,18 @@ class Appearance(db.Model, SerializerMixin):
     rating = db.Column(db.Integer)
     guest_id = db.Column(db.Integer, ForeignKey('guests.id'))
     episode_id = db.Column(db.Integer, ForeignKey('episodes.id'))
+
+    guest = relationship("Guest", back_populates="appearances")
+    episode = relationship("Episode", back_populates="appearances")
+
+
+@validates("rating")
+def validating_instructions(self, key, rating):
+    if rating is int > 5 :
+         raise ValueError("rating must be between 1-5 ")
+    return rating 
+
+
 
 
 
