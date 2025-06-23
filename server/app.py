@@ -5,3 +5,5 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from config import app, db, api
 
+if __name__ == '__main__':
+    app.run(port=5555, debug=True)
