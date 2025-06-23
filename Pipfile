@@ -12,6 +12,8 @@ pipenv = "*"
 shell = "*"
 alembic = "*"
 flask-migrate = "*"
+flask-restful = "*"
+faker = "*"
 
 [dev-packages]
 
