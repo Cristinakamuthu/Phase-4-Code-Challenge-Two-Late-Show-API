@@ -6,14 +6,15 @@ name = "pypi"
 [packages]
 flask = "*"
 flask-sqlalchemy = "*"
-flask-jwt-extended = "*"
 psycopg2-binary = "*"
 pipenv = "*"
 shell = "*"
 alembic = "*"
 flask-migrate = "*"
-flask-restful = "*"
 faker = "*"
+flask-jwt-extended = "*"
+flask-restful = "*"
+flask-cors = "*"
 
 [dev-packages]
 

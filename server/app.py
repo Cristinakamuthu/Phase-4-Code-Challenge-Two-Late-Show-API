@@ -1,91 +1,115 @@
-from flask import request
-from flask_restful import Resource
-from flask_jwt_extended import create_access_token, jwt_required
-from datetime import timedelta
-from sqlalchemy.exc import IntegrityError
-
-from config import create_app, db, api
-from models import User, Guest, Episode, Appearance
+from flask import Flask, request, jsonify
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required
+from flask_cors import CORS
+from models import db, User, Guest, Episode, Appearance
+from config import create_app
 
 app = create_app()
+CORS(app)
+jwt = JWTManager(app)
+
+# AUTH ROUTES
+
+@app.route("/register", methods=["POST"])
+def register():
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
+
+    if not username or not password:
+        return jsonify({"error": "Missing fields"}), 400
+
+    if User.query.filter_by(username=username).first():
+        return jsonify({"error": "User already exists"}), 400
+
+    user = User(username=username)
+    user.password_hash = password
+    db.session.add(user)
+    db.session.commit()
+
+    return jsonify({"message": "User registered successfully"}), 201
 
 
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
 
-class Register(Resource):
-    def post(self):
-        data = request.get_json() or {}
-        if not data.get("username") or not data.get("password"):
-            return {"error": "username and password required"}, 400
-        if User.query.filter_by(username=data["username"]).first():
-            return {"error": "user exists"}, 400
-        user = User(username=data["username"])
-        user.password_hash = data["password"]
-        db.session.add(user)
-        db.session.commit()
-        return {"id": user.id, "username": user.username}, 201
+    user = User.query.filter_by(username=username).first()
+    if not user or not user.authenticate(password):
+        return jsonify({"error": "Invalid credentials"}), 401
 
-class Login(Resource):
-    def post(self):
-        data = request.get_json()
-        if not data or "username" not in data or "password" not in data:
-            return {"error": "username and password required"}, 400
-        user = User.query.filter_by(username=data["username"]).first()
-        if not user or not user.authenticate(data["password"]):
-            return {"error": "invalid credentials"}, 401
-        token = create_access_token(identity=user.id, expires_delta=timedelta(days=1))
-        return {"access_token": token}, 200
-
-class Episodes(Resource):
-    def get(self):
-        episodes = Episode.query.all()
-        return [episode.to_dict(rules=("-appearances.episode",)) for episode in episodes], 200
-
-class EpisodeDetail(Resource):
-    def get(self, id):
-        episode = Episode.query.get_or_404(id)
-        return episode.to_dict(), 200
-
-    @jwt_required()
-    def delete(self, id):
-        episode = Episode.query.get_or_404(id)
-        Appearance.query.filter_by(episode_id=id).delete()
-        db.session.delete(episode)
-        db.session.commit()
-        return {}, 204
-
-class Guests(Resource):
-    def get(self):
-        guests = Guest.query.all()
-        return [guest.to_dict(rules=("-appearances.guest",)) for guest in guests], 200
-
-class Appearances(Resource):
-    @jwt_required()
-    def post(self):
-        data = request.get_json()
-        required = {"guest_id", "episode_id", "rating"}
-        if not data or not required.issubset(data):
-            return {"error": "guest_id, episode_id, rating required"}, 400
-        try:
-            appearance = Appearance(
-                guest_id=data["guest_id"],
-                episode_id=data["episode_id"],
-                rating=int(data["rating"])
-            )
-            db.session.add(appearance)
-            db.session.commit()
-            return appearance.to_dict(), 201
-        except IntegrityError:
-            db.session.rollback()
-            return {"error": "invalid guest or episode ID"}, 400
+    token = create_access_token(identity=user.id)
+    return jsonify({"access_token": token}), 200
 
 
-api.add_resource(Register, "/register",endpoint='register')
-api.add_resource(Login, "/login" ,endpoint='login')
-api.add_resource(Episodes, "/episodes" ,endpoint='episodes_list')
-api.add_resource(EpisodeDetail, "/episodes/<int:id>", endpoint='episodes')
-api.add_resource(Guests, "/guests",endpoint='guests')
-api.add_resource(Appearances, "/appearances" ,endpoint='appearances')
+# GET ALL EPISODES
 
-if __name__ == '__main__':
-    print(app.url_map)
+@app.route("/episodes", methods=["GET"])
+def get_episodes():
+    episodes = Episode.query.all()
+    return jsonify([{
+        "id": ep.id,
+        "date": ep.date
+    } for ep in episodes]), 200
+
+
+# GET ONE EPISODE WITH GUESTS
+
+@app.route("/episodes/<int:id>", methods=["GET"])
+def get_episode(id):
+    ep = Episode.query.get_or_404(id)
+
+    return jsonify({
+        "id": ep.id,
+        "date": ep.date,
+        "appearances": [{
+            "id": a.id,
+            "rating": a.rating,
+            "guest": {
+                "id": a.guest.id,
+                "name": a.guest.name
+            }
+        } for a in ep.appearances]
+    }), 200
+
+
+# GET ALL GUESTS
+
+@app.route("/guests", methods=["GET"])
+def get_guests():
+    guests = Guest.query.all()
+    return jsonify([{
+        "id": g.id,
+        "name": g.name
+    } for g in guests]), 200
+
+
+# CREATE AN APPEARANCE (Protected)
+
+@app.route("/appearance", methods=["POST"])
+@jwt_required()
+def create_appearance():
+    data = request.get_json()
+    guest_id = data.get("guest_id")
+    episode_id = data.get("episode_id")
+    rating = data.get("rating")
+
+    if not all([guest_id, episode_id, rating]):
+        return jsonify({"error": "Missing fields"}), 400
+
+    appearance = Appearance(guest_id=guest_id, episode_id=episode_id, rating=rating)
+    db.session.add(appearance)
+    db.session.commit()
+
+    return jsonify({
+        "id": appearance.id,
+        "guest_id": guest_id,
+        "episode_id": episode_id,
+        "rating": rating
+    }), 201
+
+
+if __name__ == "__main__":
     app.run(port=5555, debug=True)
