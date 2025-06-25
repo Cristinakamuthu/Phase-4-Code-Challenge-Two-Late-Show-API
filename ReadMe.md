@@ -8,8 +8,8 @@ for managing Late Show Episodes, Guests, and Appearances.
 1. Clone the repository at:
 
    ```bash
- https://github.com/Cristinakamuthu/Phase-4-Code-Challenge-Two-Late-Show-API
-   Then, cd late-show-api
+   https://github.com/Cristinakamuthu/Phase-4-Code-Challenge-Two-Late-Show-API
+   Then, cd two-late-show-api
    ```
 2. Install dependencies:
 
@@ -53,7 +53,7 @@ Install them with =pipenv "The dependency you want"
 
 ```bash
 alembic init alembic
-alembic revision --autogenerate -m "create tables"
+alembic revision --autogenerate -m "created all tables"
 alembic upgrade head
 ```
 
@@ -89,7 +89,7 @@ Authorization: Bearer <your_jwt_token_here>
 
 ## Postman Usage Guide
 
-Import into Postman and test endpoints for Registration, Login, Viewing Episodes, Viewing Guests, and Creating Appearances.
+Use Thunderclient to test endpoints for Registration, Login, Viewing Episodes, Viewing Guests, and Creating Appearances.
 
 ## GitHub Repository
 
@@ -111,10 +111,10 @@ Import into Postman and test endpoints for Registration, Login, Viewing Episodes
   # Guests.png --- getting all the guests 
    ![alt text](Guests.png)
 
-  # Appearances.png --- attempting to post without authorization token!
+  # Appearances.png --- attempting to create an appearnance without authorization token!
    ![alt text](errorforappearance.png)
 
-   # AppearancesAfterBearerTokeninput.png ---posting ....(while authorized via token)
-   ![alt text](Appearancesuccessful! (1).png)
+   # AppearancesAfterBearerTokeninput.png ---creating and appearance....(while authorized via token)
+   ![alt text](Appearancesuccessful!(1).png)
 
    
