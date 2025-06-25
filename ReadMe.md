@@ -87,7 +87,7 @@ Authorization: Bearer <your_jwt_token_here>
 * `GET /guests`
 * `POST /appearances` *(Requires JWT Auth)*
 
-## Postman Usage Guide
+## Thunderclient Guide!
 
 Use Thunderclient to test endpoints for Registration, Login, Viewing Episodes, Viewing Guests, and Creating Appearances.
 
@@ -95,12 +95,12 @@ Use Thunderclient to test endpoints for Registration, Login, Viewing Episodes, V
 
 [https://github.com/Cristinakamuthu/Phase-4-Code-Challenge-Two-Late-Show-API](https://github.com/Cristinakamuthu/Phase-4-Code-Challenge-Two-Late-Show-API)
 
-## Screenshots for routes being used 
+## Screenshots for routes being used (EVIDENCES!!!!!!!)
    # RegisterUsers --- registering users via the route created !
    ![alt text](registeruser.png)
 
    # Login.png -- logging in the user via the route created !
-   ![alt text](login person.png)
+   ![alt text](loginperson.png)
 
    # Episodes.png -- getting all the episodes via the routes !
    ![alt text](getepisodes.png)
@@ -111,7 +111,7 @@ Use Thunderclient to test endpoints for Registration, Login, Viewing Episodes, V
   # Guests.png --- getting all the guests 
    ![alt text](Guests.png)
 
-  # Appearances.png --- attempting to create an appearnance without authorization token!
+  # Appearances.png --- attempting to create an appearnance without all segemnts
    ![alt text](errorforappearance.png)
 
    # AppearancesAfterBearerTokeninput.png ---creating and appearance....(while authorized via token)
