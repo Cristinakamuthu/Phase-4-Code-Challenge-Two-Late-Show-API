@@ -8,7 +8,6 @@ app = create_app()
 CORS(app)
 jwt = JWTManager(app)
 
-# AUTH ROUTES
 
 @app.route("/register", methods=["POST"])
 def register():
@@ -44,7 +43,7 @@ def login():
     return jsonify({"access_token": token}), 200
 
 
-# GET ALL EPISODES
+
 
 @app.route("/episodes", methods=["GET"])
 def get_episodes():
@@ -55,7 +54,7 @@ def get_episodes():
     } for ep in episodes]), 200
 
 
-# GET ONE EPISODE WITH GUESTS
+
 
 @app.route("/episodes/<int:id>", methods=["GET"])
 def get_episode(id):
@@ -75,7 +74,7 @@ def get_episode(id):
     }), 200
 
 
-# GET ALL GUESTS
+
 
 @app.route("/guests", methods=["GET"])
 def get_guests():
@@ -86,7 +85,6 @@ def get_guests():
     } for g in guests]), 200
 
 
-# CREATE AN APPEARANCE (Protected)
 
 @app.route("/appearance", methods=["POST"])
 @jwt_required()
